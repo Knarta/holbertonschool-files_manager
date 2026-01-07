@@ -1,34 +1,41 @@
 import crypto from 'crypto';
 import dbClient from '../utils/db.mjs';
 
-class UsersController {
-    static async postNew(req, res) {
-        const { email, password } = req.body;
+export const postNew = async (req, res) => {
+    const { email, password } = req.body;
 
-        if (!email) {
-            return res.status(400).json({ error: 'Missing email' });
-        }
+    if (!email) {
+        return res.status(400).json({ error: 'Missing email' });
+      }
 
-        if (!password) {
-            return res.status(400).json({ error: 'Missing password' });
-        }
+    if (!password) {
+        return res.status(400).json({ error: 'Missing password' });
+      }
+    
+      try {
+        const usersCollection = dbClient.db.collection('users');
+        const existingUser = await usersCollection.findOne({ email });
 
-        const hashedPassword = crypto.createHash('sha1').update(password).digest('hex');
-        const user = await dbClient.db.collection('users');
-
-        user.collection.findOne({ email }).then(existingUser => {
-            if (existingUser) {
-                return res.status(400).json({ error: 'User already exists' });
-            }
-
-            usersCollection.insertOne({
-                email,
-                password: hashedPassword,
-              }).then(
-                (result) => {res.status(201).json({id: result.insertedId,email,
-                  });
-                }
-            );
-        });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Already exist' });
     }
-}
+
+    const hashedPassword = crypto
+      .createHash('sha1')
+      .update(password)
+      .digest('hex');
+
+      const result = await usersCollection.insertOne({
+        email,
+        password: hashedPassword,
+      });
+
+      return res.status(201).json({
+        id: result.insertedId,
+        email,
+      });
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  };
