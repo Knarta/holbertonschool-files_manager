@@ -7,4 +7,6 @@ router.get('/status', getStatus);
 
 router.get('/stats', getStats);
 
+router.post('/users', UsersController.postNew);
+
 export default router;
