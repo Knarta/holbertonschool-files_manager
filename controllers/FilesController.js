@@ -104,7 +104,8 @@ export const postUpload = async (req, res) => {
 
     await mkdir(folderPath, { recursive: true });
 
-    const localPath = `${folderPath}/${uuidv4()}`;
+    const fileName = uuidv4();
+    const localPath = `${folderPath}/${fileName}`;
     await writeFile(localPath, Buffer.from(filePayload.data, 'base64'));
 
     const fileDoc = {
