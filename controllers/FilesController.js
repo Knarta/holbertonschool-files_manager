@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
 import { contentType } from 'mime-types';
+import path from 'path';
 import {
   mkdir,
   writeFile,
@@ -105,7 +106,7 @@ export const postUpload = async (req, res) => {
     await mkdir(folderPath, { recursive: true });
 
     const fileName = uuidv4();
-    const localPath = `${folderPath}/${fileName}`;
+    const localPath = path.join(folderPath, fileName);
     await writeFile(localPath, Buffer.from(filePayload.data, 'base64'));
 
     const fileDoc = {
