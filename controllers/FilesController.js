@@ -53,6 +53,10 @@ export const postUpload = async (req, res) => {
 
     let parentFolder = null;
     if (filePayload.parentId && filePayload.parentId !== '0') {
+      if (!ObjectId.isValid(filePayload.parentId)) {
+        return res.status(400).json({ error: 'Parent not found' });
+      }
+
       parentFolder = await filesCollection.findOne({ _id: new ObjectId(filePayload.parentId) });
 
       if (!parentFolder) {
