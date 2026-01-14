@@ -74,6 +74,8 @@ export const postUpload = async (req, res) => {
 
     await mkdir(folderPath, { recursive: true });
 
+    const parentIdValue = parentFolder ? parentFolder._id : '0';
+
     if (filePayload.type === 'folder') {
       const folderDoc = {
         userId: user._id,
@@ -82,9 +84,9 @@ export const postUpload = async (req, res) => {
         isPublic: filePayload.isPublic || false,
         parentId: parentIdValue, // 0 ou ObjectId
       };
-    
+
       const { insertedId } = await filesCollection.insertOne(folderDoc);
-    
+
       return res.status(201).json({
         id: insertedId,
         userId: folderDoc.userId,
@@ -107,9 +109,9 @@ export const postUpload = async (req, res) => {
       parentId: parentIdValue, // 0 ou ObjectId
       localPath,
     };
-    
+
     const { insertedId } = await filesCollection.insertOne(fileDoc);
-    
+
     return res.status(201).json({
       id: insertedId,
       userId: fileDoc.userId,
@@ -117,7 +119,7 @@ export const postUpload = async (req, res) => {
       type: fileDoc.type,
       isPublic: fileDoc.isPublic,
       parentId: fileDoc.parentId,
-    })
+    });
   } catch (err) {
     console.error('Error uploading file:', err);
     return res.status(500).json({ error: 'Internal server error' });
