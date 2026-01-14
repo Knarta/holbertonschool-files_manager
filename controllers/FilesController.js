@@ -75,24 +75,23 @@ export const postUpload = async (req, res) => {
     await mkdir(folderPath, { recursive: true });
 
     if (filePayload.type === 'folder') {
-      const localPath = `${folderPath}/${uuidv4()}`;
-      await mkdir(localPath, { recursive: true });
-
-      const folderInserted = await filesCollection.insertOne({
+      const folderDoc = {
         userId: user._id,
         name: filePayload.name,
         type: 'folder',
-        parentId: parentFolder ? parentFolder._id.toString() : '0',
-      });
-
-      const inserted = folderInserted.ops[0];
+        isPublic: filePayload.isPublic || false,
+        parentId: parentIdValue, // 0 ou ObjectId
+      };
+    
+      const { insertedId } = await filesCollection.insertOne(folderDoc);
+    
       return res.status(201).json({
-        id: folderInserted.insertedId,
-        userId: inserted.userId,
-        name: inserted.name,
-        type: inserted.type,
-        isPublic: false,
-        parentId: Number(inserted.parentId),
+        id: insertedId,
+        userId: folderDoc.userId,
+        name: folderDoc.name,
+        type: folderDoc.type,
+        isPublic: folderDoc.isPublic,
+        parentId: folderDoc.parentId,
       });
     }
 
@@ -100,24 +99,25 @@ export const postUpload = async (req, res) => {
     const localPath = `${folderPath}/${uuidv4()}`;
     await writeFile(localPath, Buffer.from(filePayload.data, 'base64'));
 
-    const fileInserted = await filesCollection.insertOne({
+    const fileDoc = {
       userId: user._id,
       name: filePayload.name,
       type: filePayload.type,
-      parentId: parentFolder ? parentFolder._id : '0',
       isPublic: filePayload.isPublic || false,
+      parentId: parentIdValue, // 0 ou ObjectId
       localPath,
-    });
-
-    const insertedFile = fileInserted.ops[0];
+    };
+    
+    const { insertedId } = await filesCollection.insertOne(fileDoc);
+    
     return res.status(201).json({
-      id: fileInserted.insertedId,
-      userId: insertedFile.userId,
-      name: insertedFile.name,
-      type: insertedFile.type,
-      isPublic: insertedFile.isPublic,
-      parentId: insertedFile.parentId,
-    });
+      id: insertedId,
+      userId: fileDoc.userId,
+      name: fileDoc.name,
+      type: fileDoc.type,
+      isPublic: fileDoc.isPublic,
+      parentId: fileDoc.parentId,
+    })
   } catch (err) {
     console.error('Error uploading file:', err);
     return res.status(500).json({ error: 'Internal server error' });
