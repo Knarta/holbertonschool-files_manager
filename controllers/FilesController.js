@@ -70,15 +70,6 @@ export const postUpload = async (req, res) => {
     }
 
     const basePath = process.env.FOLDER_PATH || DEFAULT_PATH;
-    let folderPath = basePath;
-
-    if (parentFolder) {
-      // For folders inside folders, store inside a subfolder named by parent ID
-      folderPath = `${basePath}/${parentFolder._id.toString()}`;
-    }
-
-    await mkdir(folderPath, { recursive: true });
-
     const parentIdValue = parentFolder ? parentFolder._id : '0';
 
     if (filePayload.type === 'folder') {
@@ -105,6 +96,15 @@ export const postUpload = async (req, res) => {
     }
 
     // type is 'file' or 'image'
+    let folderPath = basePath;
+
+    if (parentFolder) {
+      // For files inside folders, store inside a subfolder named by parent ID
+      folderPath = `${basePath}/${parentFolder._id.toString()}`;
+    }
+
+    await mkdir(folderPath, { recursive: true });
+
     const localPath = path.resolve(folderPath, uuidv4());
     await writeFile(localPath, Buffer.from(filePayload.data, 'base64'));
 
