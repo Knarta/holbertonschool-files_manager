@@ -95,14 +95,6 @@ export const postUpload = async (req, res) => {
       });
     }
 
-    // type is 'file' or 'image'
-    let folderPath = basePath;
-
-    if (parentFolder) {
-      // For files inside folders, store inside a subfolder named by parent ID
-      folderPath = `${basePath}/${parentFolder._id.toString()}`;
-    }
-
     await mkdir(folderPath, { recursive: true });
 
     const fileName = uuidv4();
