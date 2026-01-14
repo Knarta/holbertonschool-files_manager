@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
 import { contentType } from 'mime-types';
+import path from 'path';
 import {
   mkdir,
   writeFile,
@@ -91,18 +92,20 @@ export const postUpload = async (req, res) => {
 
       const { insertedId } = await filesCollection.insertOne(folderDoc);
 
+      const responseParentId = folderDoc.parentId === '0' ? 0 : folderDoc.parentId.toString();
+
       return res.status(201).json({
-        id: insertedId,
-        userId: folderDoc.userId,
+        id: insertedId.toString(),
+        userId: folderDoc.userId.toString(),
         name: folderDoc.name,
         type: folderDoc.type,
         isPublic: folderDoc.isPublic,
-        parentId: folderDoc.parentId,
+        parentId: responseParentId,
       });
     }
 
     // type is 'file' or 'image'
-    const localPath = `${folderPath}/${uuidv4()}`;
+    const localPath = path.resolve(folderPath, uuidv4());
     await writeFile(localPath, Buffer.from(filePayload.data, 'base64'));
 
     const fileDoc = {
@@ -116,13 +119,15 @@ export const postUpload = async (req, res) => {
 
     const { insertedId } = await filesCollection.insertOne(fileDoc);
 
+    const responseParentId = fileDoc.parentId === '0' ? 0 : fileDoc.parentId.toString();
+
     return res.status(201).json({
-      id: insertedId,
-      userId: fileDoc.userId,
+      id: insertedId.toString(),
+      userId: fileDoc.userId.toString(),
       name: fileDoc.name,
       type: fileDoc.type,
       isPublic: fileDoc.isPublic,
-      parentId: fileDoc.parentId,
+      parentId: responseParentId,
     });
   } catch (err) {
     console.error('Error uploading file:', err);
